@@ -1,1 +1,6 @@
-<div id="map"></div>
+<div class="app-container">
+  <div class="app-container__map" id="map"></div>
+  <div class="app-container__list">
+    <app-card *ngFor="let field of response.fields" [field]="field"></app-card>
+  </div>
+</div>
