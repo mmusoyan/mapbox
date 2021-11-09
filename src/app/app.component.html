@@ -1,6 +1,38 @@
 <div class="app-container">
-  <div class="app-container__map" id="map"></div>
-  <div class="app-container__list">
+  <div class="app__map" id="map"></div>
+  <div class="app__map-controls" id="controls">
+    <label class="app__map-controls--checkbox">
+      <input
+        type="checkbox"
+        [(ngModel)]="showFields"
+        name="fieldsToggle"
+        value="fieldsToggle"
+        (change)="toggleFieldsVisibility()"
+      />
+      show/hide fields
+    </label>
+
+    <label class="app__map-controls--checkbox">
+      <input
+        type="checkbox"
+        [(ngModel)]="masterSelected"
+        name="list_name"
+        value="m1"
+        (change)="checkUncheckAll()"
+      />
+      select/ unselect all
+    </label>
+
+    <label *ngFor="let item of checklist" class="app__map-controls--checkbox">
+      <input
+        type="checkbox"
+        [(ngModel)]="item.isSelected"
+        name="list_name"
+        value="{{ item.id }}"
+        (change)="isAllSelected()"
+      />
+      {{ item.value }}
+    </label>
     <app-card *ngFor="let field of response.fields" [field]="field"></app-card>
   </div>
 </div>

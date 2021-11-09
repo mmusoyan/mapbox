@@ -3,14 +3,19 @@
   height: 100%;
 }
 
-.app-container__map {
+.app__map {
   height: 100%;
   flex: auto;
 }
 
-.app-container__list {
+.app__map-controls {
+  margin-top: 80px;
   height: 100%;
   width: 16rem;
   padding: 0 0.5rem;
   overflow-y: auto;
+}
+
+.app__map-controls--checkbox {
+  display: block;
 }

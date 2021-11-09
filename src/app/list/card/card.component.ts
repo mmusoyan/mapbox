@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 
-interface field {
+interface IField {
   state: string;
   geometryId: number;
   acres: number;
@@ -12,7 +12,7 @@ interface field {
   styleUrls: ['./card.component.css'],
 })
 export class CardComponent implements OnInit {
-  @Input() field!: field;
+  @Input() field!: IField;
 
   constructor() {}
 

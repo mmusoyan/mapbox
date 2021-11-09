@@ -17,10 +17,11 @@ interface IFeature {
   properties: any;
 }
 
-// todo:
-// interfaces for
-// properties: acre geom state
-// geometry: type coordinates
+interface IFieldArea {
+  id: number;
+  value: string;
+  isSelected: boolean;
+}
 
 @Component({
   selector: 'app-root',
@@ -31,6 +32,55 @@ export class AppComponent implements OnInit {
   map!: mapboxgl.Map;
   response = response;
   style = 'mapbox://styles/mapbox/streets-v11';
+  showFields = true;
+  masterSelected = false;
+  checklist: IFieldArea[];
+  checkedList: any;
+
+  constructor() {
+    this.checklist = [
+      { id: 1, value: '<= 20>', isSelected: false },
+      { id: 2, value: '<= 50', isSelected: false },
+      { id: 3, value: '<= 80>', isSelected: false },
+      { id: 4, value: '<= 120>', isSelected: false },
+      { id: 5, value: '> 120', isSelected: false },
+    ];
+    this.getCheckedItemList();
+  }
+
+  checkUncheckAll() {
+    for (let i = 0; i < this.checklist?.length; i++) {
+      this.checklist[i].isSelected = this.masterSelected;
+    }
+    this.getCheckedItemList();
+  }
+
+  isAllSelected() {
+    this.masterSelected = this.checklist.every(function (
+      areaFilter: IFieldArea
+    ) {
+      return areaFilter.isSelected == true;
+    });
+    this.getCheckedItemList();
+  }
+
+  getCheckedItemList() {
+    this.checkedList = [];
+    for (let i = 0; i < this.checklist?.length; i++) {
+      if (this.checklist[i].isSelected)
+        this.checkedList.push(this.checklist[i]);
+    }
+    this.checkedList = JSON.stringify(this.checkedList);
+    console.log(this.checkedList);
+  }
+
+  toggleFieldsVisibility() {
+    if (this.showFields) {
+      this.map.setLayoutProperty('fields', 'visibility', 'visible');
+    } else {
+      this.map.setLayoutProperty('fields', 'visibility', 'none');
+    }
+  }
 
   combineFieldsToSingleLayer = () => {
     const features: any[] = [];
@@ -59,7 +109,7 @@ export class AppComponent implements OnInit {
     });
 
     this.map.on('load', () => {
-      this.map.addSource('states', {
+      this.map.addSource('fields', {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
@@ -68,9 +118,9 @@ export class AppComponent implements OnInit {
       });
 
       this.map.addLayer({
-        id: 'draw-states',
+        id: 'fields',
         type: 'fill',
-        source: 'states',
+        source: 'fields',
         layout: {},
         paint: {
           'fill-color': [
@@ -88,6 +138,18 @@ export class AppComponent implements OnInit {
           'fill-opacity': 0.5,
         },
       });
+
+      // todo: generate the filter dynamically from checkboxes
+      this.map.setFilter('fields', [
+        'any',
+        ['all', ['>', ['get', 'acres'], 0], ['<=', ['get', 'acres'], 20]],
+        ['all', ['>', ['get', 'acres'], 20], ['<=', ['get', 'acres'], 50]],
+        ['all', ['>', ['get', 'acres'], 50], ['<=', ['get', 'acres'], 80]],
+        ['all', ['>', ['get', 'acres'], 80], ['<=', ['get', 'acres'], 120]],
+        ['>', ['get', 'acres'], 120],
+      ]);
     });
+
+    this.map.on('idle', () => {});
   }
 }
