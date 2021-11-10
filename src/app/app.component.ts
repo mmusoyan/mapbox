@@ -40,6 +40,8 @@ export class AppComponent implements OnInit {
     closeButton: false,
   });
 
+  hoveredStateId: any = null;
+
   filteredFields: any[];
   style = 'mapbox://styles/mapbox/streets-v11';
   showFields = true;
@@ -164,7 +166,7 @@ export class AppComponent implements OnInit {
   }
 
   navigateToField(field: any) {
-    var pointOfInaccessibility = polylabel(
+    const pointOfInaccessibility = polylabel(
       field?.geometry?.coordinates?.[0],
       1.0
     ) as LngLatLike;
@@ -174,14 +176,37 @@ export class AppComponent implements OnInit {
       .setHTML(
         `<div style="color: rgb(161, 161, 161); padding: 0 10px; display: flex; flex-direction: column;"><span>State: ${field?.properties.state.toUpperCase()}</span><span>Area: ${
           field?.properties.acres
-        }</span></div>`
+        } acres</span></div>`
       )
       .addTo(this.map);
 
-    this.map?.setZoom(15);
+    this.map?.setZoom(13.5);
     this.map?.flyTo({
       center: pointOfInaccessibility,
     });
+  }
+
+  highlightField(features: any) {
+    console.log(features);
+
+    if (this.hoveredStateId) {
+      this.map.removeFeatureState({
+        source: 'fields',
+        id: this.hoveredStateId,
+      });
+    }
+
+    this.hoveredStateId = features[0].id;
+
+    this.map.setFeatureState(
+      {
+        source: 'fields',
+        id: this.hoveredStateId,
+      },
+      {
+        hover: true,
+      }
+    );
   }
 
   combineFieldsToSingleLayer = () => {
@@ -237,11 +262,32 @@ export class AppComponent implements OnInit {
             '#01BC66',
             '#A39BFE',
           ],
-          'fill-opacity': 0.5,
+          'fill-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            1,
+            0.5,
+          ],
         },
       });
 
       this.map.setFilter('fields', this.areaSizeFilter);
+
+      this.map.on('mousemove', 'fields', (event) => {
+        if (!event.features?.length) return;
+
+        this.highlightField(event.features);
+      });
+
+      this.map.on('mouseleave', 'fields', () => {
+        if (this.hoveredStateId) {
+          this.map.setFeatureState(
+            { source: 'fields', id: this.hoveredStateId },
+            { hover: false }
+          );
+        }
+        this.hoveredStateId = null;
+      });
     });
 
     this.map.on('idle', () => {});

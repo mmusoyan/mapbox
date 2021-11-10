@@ -37,6 +37,7 @@
     <app-card
       *ngFor="let feature of filteredFields"
       (click)="navigateToField(feature)"
+      (mouseover)="highlightField([feature])"
       [feature]="feature"
     ></app-card>
   </section>
