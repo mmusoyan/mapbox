@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { LngLatLike } from 'mapbox-gl';
 import { environment } from 'src/environments/environment';
 import response from '../assets/response.json';
+import polylabel from 'polylabel';
 
 interface IField {
   state: string;
@@ -19,7 +20,10 @@ interface IFeature {
 
 interface IFieldArea {
   id: number;
-  value: string;
+  areaSizeMapFilter: any[];
+  minArea: number;
+  maxArea?: number;
+  displayText: string;
   isSelected: boolean;
 }
 
@@ -31,21 +35,82 @@ interface IFieldArea {
 export class AppComponent implements OnInit {
   map!: mapboxgl.Map;
   response = response;
+  features: any[];
+  popup: mapboxgl.Popup = new mapboxgl.Popup({
+    closeButton: false,
+  });
+
+  filteredFields: any[];
   style = 'mapbox://styles/mapbox/streets-v11';
   showFields = true;
   masterSelected = false;
   checklist: IFieldArea[];
   checkedList: any;
+  areaSizeFilter = ['any'];
 
   constructor() {
+    this.features = this.combineFieldsToSingleLayer();
+    this.filteredFields = this.features;
+
     this.checklist = [
-      { id: 1, value: '<= 20>', isSelected: false },
-      { id: 2, value: '<= 50', isSelected: false },
-      { id: 3, value: '<= 80>', isSelected: false },
-      { id: 4, value: '<= 120>', isSelected: false },
-      { id: 5, value: '> 120', isSelected: false },
+      {
+        id: 1,
+        areaSizeMapFilter: [
+          'all',
+          ['>', ['get', 'acres'], 0],
+          ['<=', ['get', 'acres'], 20],
+        ],
+        displayText: '<= 20 acres',
+        isSelected: true,
+        minArea: 0,
+        maxArea: 20,
+      },
+      {
+        id: 2,
+        areaSizeMapFilter: [
+          'all',
+          ['>', ['get', 'acres'], 20],
+          ['<=', ['get', 'acres'], 50],
+        ],
+        displayText: '<= 50 acres',
+        isSelected: true,
+        minArea: 20,
+        maxArea: 50,
+      },
+      {
+        id: 3,
+        areaSizeMapFilter: [
+          'all',
+          ['>', ['get', 'acres'], 50],
+          ['<=', ['get', 'acres'], 80],
+        ],
+        displayText: '<= 80 acres',
+        isSelected: true,
+        minArea: 50,
+        maxArea: 80,
+      },
+      {
+        id: 4,
+        areaSizeMapFilter: [
+          'all',
+          ['>', ['get', 'acres'], 80],
+          ['<=', ['get', 'acres'], 120],
+        ],
+        displayText: '<= 120 acres',
+        isSelected: true,
+        minArea: 80,
+        maxArea: 120,
+      },
+      {
+        id: 5,
+        areaSizeMapFilter: ['>', ['get', 'acres'], 120],
+        displayText: '> 120 acres',
+        isSelected: true,
+        minArea: 120,
+        maxArea: 1000,
+      },
     ];
-    this.getCheckedItemList();
+    this.isAllSelected();
   }
 
   checkUncheckAll() {
@@ -70,16 +135,53 @@ export class AppComponent implements OnInit {
       if (this.checklist[i].isSelected)
         this.checkedList.push(this.checklist[i]);
     }
-    this.checkedList = JSON.stringify(this.checkedList);
-    console.log(this.checkedList);
+
+    this.areaSizeFilter = [
+      'any',
+      ...this.checkedList.map((item: IFieldArea) => item.areaSizeMapFilter),
+    ];
+
+    this.filteredFields = this.features.filter((feature) => {
+      return this.checkedList.some(
+        (item: IFieldArea) =>
+          feature.properties.acres > item.minArea &&
+          item.maxArea &&
+          feature.properties.acres < item.maxArea
+      );
+    });
+
+    console.log(this.filteredFields);
+
+    this.map?.setFilter('fields', this.areaSizeFilter);
   }
 
   toggleFieldsVisibility() {
     if (this.showFields) {
-      this.map.setLayoutProperty('fields', 'visibility', 'visible');
+      this.map?.setLayoutProperty('fields', 'visibility', 'visible');
     } else {
-      this.map.setLayoutProperty('fields', 'visibility', 'none');
+      this.map?.setLayoutProperty('fields', 'visibility', 'none');
     }
+  }
+
+  navigateToField(field: any) {
+    var pointOfInaccessibility = polylabel(
+      field?.geometry?.coordinates?.[0],
+      1.0
+    ) as LngLatLike;
+
+    this.popup
+      .setLngLat(pointOfInaccessibility)
+      .setHTML(
+        `<div style="color: rgb(161, 161, 161); padding: 0 10px; display: flex; flex-direction: column;"><span>State: ${field?.properties.state.toUpperCase()}</span><span>Area: ${
+          field?.properties.acres
+        }</span></div>`
+      )
+      .addTo(this.map);
+
+    this.map?.setZoom(15);
+    this.map?.flyTo({
+      center: pointOfInaccessibility,
+    });
   }
 
   combineFieldsToSingleLayer = () => {
@@ -105,7 +207,7 @@ export class AppComponent implements OnInit {
       container: 'map',
       style: this.style,
       center: [-88.4205588686028, 40.124084947779],
-      zoom: 15,
+      zoom: 13,
     });
 
     this.map.on('load', () => {
@@ -113,7 +215,7 @@ export class AppComponent implements OnInit {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
-          features: this.combineFieldsToSingleLayer(),
+          features: this.features,
         },
       });
 
@@ -139,15 +241,7 @@ export class AppComponent implements OnInit {
         },
       });
 
-      // todo: generate the filter dynamically from checkboxes
-      this.map.setFilter('fields', [
-        'any',
-        ['all', ['>', ['get', 'acres'], 0], ['<=', ['get', 'acres'], 20]],
-        ['all', ['>', ['get', 'acres'], 20], ['<=', ['get', 'acres'], 50]],
-        ['all', ['>', ['get', 'acres'], 50], ['<=', ['get', 'acres'], 80]],
-        ['all', ['>', ['get', 'acres'], 80], ['<=', ['get', 'acres'], 120]],
-        ['>', ['get', 'acres'], 120],
-      ]);
+      this.map.setFilter('fields', this.areaSizeFilter);
     });
 
     this.map.on('idle', () => {});

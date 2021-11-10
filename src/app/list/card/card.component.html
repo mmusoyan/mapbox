@@ -2,11 +2,11 @@
   <div class="card__content">
     <div class="card__header">
       <span>Geometry ID:</span>
-      <span>{{ field.geometryId }}</span>
+      <span>{{ feature.properties.geom_id }}</span>
     </div>
     <div class="card__meta">
-      <span>State: {{ field.state.toUpperCase() }}</span>
-      <span>Area: {{ field.acres }} ac.</span>
+      <span>State: {{ feature.properties.state.toUpperCase() }}</span>
+      <span>Area: {{ feature.properties.acres }} acres</span>
     </div>
   </div>
 </div>

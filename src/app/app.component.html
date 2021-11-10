@@ -1,6 +1,7 @@
 <div class="app-container">
-  <div class="app__map" id="map"></div>
-  <div class="app__map-controls" id="controls">
+  <section class="app__map" id="map"></section>
+  <section class="app__map-controls" id="controls">
+    <h1>Mapbox controls</h1>
     <label class="app__map-controls--checkbox">
       <input
         type="checkbox"
@@ -11,16 +12,16 @@
       />
       show/hide fields
     </label>
-
+    <div>filter fields by area size</div>
     <label class="app__map-controls--checkbox">
       <input
         type="checkbox"
         [(ngModel)]="masterSelected"
         name="list_name"
-        value="m1"
+        value="masterSelected"
         (change)="checkUncheckAll()"
       />
-      select/ unselect all
+      select/ unselect all fields
     </label>
 
     <label *ngFor="let item of checklist" class="app__map-controls--checkbox">
@@ -31,8 +32,12 @@
         value="{{ item.id }}"
         (change)="isAllSelected()"
       />
-      {{ item.value }}
+      {{ item.displayText }}
     </label>
-    <app-card *ngFor="let field of response.fields" [field]="field"></app-card>
-  </div>
+    <app-card
+      *ngFor="let feature of filteredFields"
+      (click)="navigateToField(feature)"
+      [feature]="feature"
+    ></app-card>
+  </section>
 </div>
