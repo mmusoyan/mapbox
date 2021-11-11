@@ -10,7 +10,7 @@ interface IGeometry {
   type: string;
 }
 
-export interface IProperty {
+interface IProperty {
   acres: number;
   geom_id: number | string;
   state: string;

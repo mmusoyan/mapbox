@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import mapboxgl, { LngLatLike, MapboxGeoJSONFeature } from 'mapbox-gl';
 import polylabel from 'polylabel';
 import { environment } from 'src/environments/environment';
+import { IFeature, IField, IFieldArea } from '../@types/interface';
 import dataSource from '../assets/dataSource.json';
-import { IFeature, IField, IFieldArea, IProperty } from '../@types/interface';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/streets-v11';
 const MAP_NAME = 'fields';
@@ -92,7 +92,7 @@ export class AppComponent implements OnInit {
   }
 
   checkUncheckAll() {
-    for (let i = 0; i < this.fieldSizeFilter?.length; i++) {
+    for (let i = 0; i < this.fieldSizeFilter.length; i++) {
       this.fieldSizeFilter[i].isSelected = this.masterSelected;
     }
     this.updateCheckedItems();
@@ -130,14 +130,13 @@ export class AppComponent implements OnInit {
     });
 
     this.map?.setFilter(MAP_NAME, this.areaSizeFilter);
+    this.popup.remove();
   }
 
   toggleFieldsVisibility() {
-    if (this.showFields) {
-      this.map?.setLayoutProperty(MAP_NAME, 'visibility', 'visible');
-    } else {
-      this.map?.setLayoutProperty(MAP_NAME, 'visibility', 'none');
-    }
+    const visibility = this.showFields ? 'visible' : 'none';
+    this.map?.setLayoutProperty(MAP_NAME, 'visibility', visibility);
+    this.popup.remove();
   }
 
   navigateToField(field: IFeature) {
@@ -157,15 +156,17 @@ export class AppComponent implements OnInit {
       .setHTML(popupBody)
       .addTo(this.map);
 
-    this.map?.setZoom(13.5);
-    this.map?.flyTo({
+    this.map.setZoom(13.5);
+    this.map.flyTo({
       center: pointOfInaccessibility,
     });
   }
 
   highlightField(features: MapboxGeoJSONFeature[]) {
+    if (!this.map) return;
+
     if (this.hoveredStateId) {
-      this.map?.removeFeatureState({
+      this.map.removeFeatureState({
         source: MAP_NAME,
         id: this.hoveredStateId,
       });
@@ -173,7 +174,7 @@ export class AppComponent implements OnInit {
 
     this.hoveredStateId = features[0].id;
 
-    this.map?.setFeatureState(
+    this.map.setFeatureState(
       {
         source: MAP_NAME,
         id: this.hoveredStateId,
@@ -190,7 +191,7 @@ export class AppComponent implements OnInit {
     dataSource?.fields?.forEach((field: IField) => {
       const fieldData = JSON.parse(field?.geometry);
 
-      fieldData.features.forEach((feature: IFeature) => {
+      fieldData?.features?.forEach((feature: IFeature) => {
         features.push({
           ...feature,
           id: feature?.properties?.geom_id || '',
@@ -245,8 +246,6 @@ export class AppComponent implements OnInit {
           ],
         },
       });
-
-      this.map?.setFilter(MAP_NAME, this.areaSizeFilter);
 
       this.map?.on('mousemove', MAP_NAME, (event) => {
         if (!event.features?.length) return;
