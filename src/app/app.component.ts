@@ -165,12 +165,7 @@ export class AppComponent implements OnInit {
   highlightField(features: MapboxGeoJSONFeature[]) {
     if (!this.map) return;
 
-    if (this.hoveredStateId) {
-      this.map.removeFeatureState({
-        source: MAP_NAME,
-        id: this.hoveredStateId,
-      });
-    }
+    this.removeHighlight();
 
     this.hoveredStateId = features[0].id;
 
@@ -183,6 +178,17 @@ export class AppComponent implements OnInit {
         hover: true,
       }
     );
+  }
+
+  removeHighlight() {
+    if (!this.map) return;
+
+    if (this.hoveredStateId) {
+      this.map.removeFeatureState({
+        source: MAP_NAME,
+        id: this.hoveredStateId,
+      });
+    }
   }
 
   combineFeaturesToSingleSource = () => {

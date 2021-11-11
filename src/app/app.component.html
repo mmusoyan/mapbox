@@ -25,7 +25,7 @@
           value="masterSelected"
           (change)="checkUncheckAll()"
         />
-        select/ unselect all fields
+        select/unselect all fields
       </label>
       <hr />
 
@@ -49,6 +49,7 @@
         *ngFor="let feature of filteredFields"
         (click)="navigateToField(feature)"
         (mouseover)="highlightField([feature])"
+        (mouseleave)="removeHighlight()"
         [feature]="feature"
       ></app-card>
     </div>
