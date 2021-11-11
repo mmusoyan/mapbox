@@ -1,11 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
 
-// interface IField {
-//   state: string;
-//   geometryId: number;
-//   acres: number;
-// }
-
 @Component({
   selector: 'app-card',
   templateUrl: './card.component.html',
