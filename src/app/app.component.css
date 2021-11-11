@@ -9,13 +9,25 @@
 }
 
 .app__map-controls {
-  margin-top: 80px;
   height: 100%;
   width: 16rem;
   padding: 0 0.5rem;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .app__map-controls--checkbox {
+  display: flex;
+}
+
+.app__map-controls--checkbox_master {
+  margin-bottom: 0.5rem;
   display: block;
+}
+
+.app__map-controls--field-list {
+  overflow-y: auto;
+  margin-top: 2rem;
+  padding-bottom: 1rem;
+  flex: auto;
 }

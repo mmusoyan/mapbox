@@ -1,44 +1,56 @@
 <div class="app-container">
   <section class="app__map" id="map"></section>
   <section class="app__map-controls" id="controls">
-    <h1>Mapbox controls</h1>
-    <label class="app__map-controls--checkbox">
-      <input
-        type="checkbox"
-        [(ngModel)]="showFields"
-        name="fieldsToggle"
-        value="fieldsToggle"
-        (change)="toggleFieldsVisibility()"
-      />
-      show/hide fields
-    </label>
-    <div>filter fields by area size</div>
-    <label class="app__map-controls--checkbox">
-      <input
-        type="checkbox"
-        [(ngModel)]="masterSelected"
-        name="list_name"
-        value="masterSelected"
-        (change)="checkUncheckAll()"
-      />
-      select/ unselect all fields
-    </label>
+    <div>
+      <h2>show/hide fields:</h2>
+      <label class="app__map-controls--checkbox">
+        <input
+          type="checkbox"
+          [(ngModel)]="showFields"
+          name="fieldsToggle"
+          value="fieldsToggle"
+          (change)="toggleFieldsVisibility()"
+        />
+        toggle field visibility
+      </label>
+    </div>
 
-    <label *ngFor="let item of checklist" class="app__map-controls--checkbox">
-      <input
-        type="checkbox"
-        [(ngModel)]="item.isSelected"
-        name="list_name"
-        value="{{ item.id }}"
-        (change)="isAllSelected()"
-      />
-      {{ item.displayText }}
-    </label>
-    <app-card
-      *ngFor="let feature of filteredFields"
-      (click)="navigateToField(feature)"
-      (mouseover)="highlightField([feature])"
-      [feature]="feature"
-    ></app-card>
+    <div>
+      <h2>filter fields by area size:</h2>
+      <label class="app__map-controls--checkbox_master">
+        <input
+          type="checkbox"
+          [(ngModel)]="masterSelected"
+          name="list_name"
+          value="masterSelected"
+          (change)="checkUncheckAll()"
+        />
+        select/ unselect all fields
+      </label>
+      <hr />
+
+      <label
+        *ngFor="let item of fieldSizeFilter"
+        class="app__map-controls--checkbox"
+      >
+        <input
+          type="checkbox"
+          [(ngModel)]="item.isSelected"
+          name="list_name"
+          value="{{ item.id }}"
+          (change)="updateMasterSelectedState()"
+        />
+        {{ item.displayText }}
+      </label>
+    </div>
+
+    <div class="app__map-controls--field-list">
+      <app-card
+        *ngFor="let feature of filteredFields"
+        (click)="navigateToField(feature)"
+        (mouseover)="highlightField([feature])"
+        [feature]="feature"
+      ></app-card>
+    </div>
   </section>
 </div>
